@@ -80,29 +80,17 @@ app.post("/api/vi/content",userMiddleware, async (req, res) => {
 })
 
 
-// app.get("/api/vi/content", async (req, res) => {
-//      // @ts-ignore
-//      let userId= req.userId;
-//      let content = await ContentModel.find({
-//           userId: userId
-//      }).populate("userId","username")
-//      res.json({
-//           message:"content fetched"
-//      })
-// })
-
-app.get("/api/v1/content", async (req, res) => {
-     
-        // Assuming userId is set by authentication middleware
-            // @ts-ignore
-          const userId = req.userId;
-          await ContentModel.find({ userId })
-               .populate("userId", "username");
-
-          res.status(200).json({
-               message: "Content fetched successfully"
-          });
+app.get("/api/vi/content", async (req, res) => {
+     // @ts-ignore
+     let userId= req.userId;
+     let content = await ContentModel.find({
+          userId: userId
+     })
+     res.json({
+          message:"content fetched"
+     })
 })
+
 
 app.delete("/api/vi/content", async (req, res) => {
 
