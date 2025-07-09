@@ -1,10 +1,11 @@
 import Express from "express"
 import mongoose from "mongoose"
 import jwt from "jsonwebtoken"
-import { JWT_PASSWORD } from "./jwt";
 
-import { ContentModel, UserModel } from "./db";
+import { JWT_PASSWORD } from "./jwt";
+import { ContentModel, LinkModel, UserModel } from "./db";
 import { userMiddleware } from "./middleware";
+import {random} from "./utile"
 
 let app = Express();
 app.use(Express.json());
@@ -83,7 +84,7 @@ app.post("/api/vi/content",userMiddleware, async (req, res) => {
 app.get("/api/vi/content", async (req, res) => {
      // @ts-ignore
      let userId= req.userId;
-     let content = await ContentModel.find({
+     await ContentModel.find({
           userId: userId
      })
      res.json({
@@ -96,12 +97,79 @@ app.delete("/api/vi/content", async (req, res) => {
 
 })
 
-app.post("/api/vi/brain/share", async (req, res) => {
+app.post("/api/vi/brain/share",userMiddleware, async (req, res) => {
+     let share=req.body.share
 
+     if(share){
+          let exitLink=await LinkModel.findOne({
+               //@ts-ignore
+               userId:req.userId
+          })
+          if(exitLink){
+               res.json({
+                    hash: exitLink.hash
+               })
+               return;
+          }
+          let hash=random(20)
+          await LinkModel.create({
+                // @ts-ignore
+               userId: req.userId,
+               hash:hash
+               
+          })
+
+          res.json({
+               hash
+          })
+     }
+     else{
+          await LinkModel.deleteOne({
+               //@ts-ignore
+               userId:req.userId
+          })
+     res.json({
+          message:"removed link "
+     })
+     }
 })
 
 app.get("/api/vi/brain/:shareLink", async (req, res) => {
+     let hash=req.params.shareLink
+
+     let link= await LinkModel.findOne({
+          hash
+     })
+
+     if(!link){
+          res.status(404).json({
+               message:'sorry incorrect input'
+               
+          })
+          return
+     }
+
+     let content= await ContentModel.find({
+          userId: link.userId
+     })
+
+     let user =await UserModel.findOne({
+          _id:link.userId
+     })
+
+     if(!user){
+          res.status(411).json({
+               message:"user not found"
+          })
+
+     }    
+     
+     res.json({
+          username:user?.username,
+          content:content
+     })
 
 })
+
 
 app.listen(3000)
