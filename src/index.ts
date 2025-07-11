@@ -1,7 +1,7 @@
 import Express from "express"
 import mongoose from "mongoose"
 import jwt from "jsonwebtoken"
-
+import cors from "cors"
 import { JWT_PASSWORD } from "./jwt";
 import { ContentModel, LinkModel, UserModel } from "./db";
 import { userMiddleware } from "./middleware";
@@ -9,8 +9,10 @@ import {random} from "./utile"
 
 let app = Express();
 app.use(Express.json());
+app.use(cors())
+const PORT = 3000;
 
-app.post("/api/vi/signup", async (req, res) => {
+app.post("/api/v1/signup", async (req, res) => {
      const { username, password } = req.body;
 
      await UserModel.create({ username:username, password:password })
@@ -19,7 +21,7 @@ app.post("/api/vi/signup", async (req, res) => {
           message: "User created successfully"})
 })
 
-app.post("/api/vi/signin", async (req, res) => {
+app.post("/api/v1/signin", async (req, res) => {
      const { username, password } = req.body;
      const user = await UserModel.findOne({
           username,
@@ -64,7 +66,7 @@ app.post("/api/vi/signin", async (req, res) => {
 //      }
 // })
 
-app.post("/api/vi/content",userMiddleware, async (req, res) => {
+app.post("/api/v1/content",userMiddleware, async (req, res) => {
 
      let {link,title } = req.body;
      await ContentModel.create({
@@ -81,7 +83,7 @@ app.post("/api/vi/content",userMiddleware, async (req, res) => {
 })
 
 
-app.get("/api/vi/content", async (req, res) => {
+app.get("/api/v1/content", async (req, res) => {
      // @ts-ignore
      let userId= req.userId;
      await ContentModel.find({
@@ -93,11 +95,11 @@ app.get("/api/vi/content", async (req, res) => {
 })
 
 
-app.delete("/api/vi/content", async (req, res) => {
+app.delete("/api/v1/content", async (req, res) => {
 
 })
 
-app.post("/api/vi/brain/share",userMiddleware, async (req, res) => {
+app.post("/api/v1/brain/share",userMiddleware, async (req, res) => {
      let share=req.body.share
 
      if(share){
@@ -134,7 +136,7 @@ app.post("/api/vi/brain/share",userMiddleware, async (req, res) => {
      }
 })
 
-app.get("/api/vi/brain/:shareLink", async (req, res) => {
+app.get("/api/v1/brain/:shareLink", async (req, res) => {
      let hash=req.params.shareLink
 
      let link= await LinkModel.findOne({
@@ -172,4 +174,6 @@ app.get("/api/vi/brain/:shareLink", async (req, res) => {
 })
 
 
-app.listen(3000)
+app.listen(PORT, () => {
+  console.log(`Backend running at http://localhost:${PORT}`);
+});
