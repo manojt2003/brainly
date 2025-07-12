@@ -66,31 +66,67 @@ app.post("/api/v1/signin", async (req, res) => {
 //      }
 // })
 
-app.post("/api/v1/content",userMiddleware, async (req, res) => {
+// app.post("/api/v1/content",userMiddleware, async (req, res) => {
 
-     let {link,title } = req.body;
-     await ContentModel.create({
-          link,
-          title,
-          //@ts-ignore
-          userId: req.userId,
-          tags:[]
+//      let {link,title,type} = req.body;
+//      await ContentModel.create({
+//           link,
+//           title,
+//           type,
+//           //@ts-ignore
+//           userId: req.userId,
+//           tags:[]
 
-     })
-     res.json({
-          message: "Content created successfully"
-     })
-})
+//      })
+
+//      res.json({
+//           message: "Content created successfully"
+//      })
+// })
+app.post("/api/v1/content", userMiddleware, async (req, res) => {
+  try {
+    const { link, title, type } = req.body;
+
+    // ✅ Input validation
+    if (!link || !title || !type) {
+      res.status(400).json({ message: "Missing required fields" });
+      return;
+    }
+
+    // ✅ DB Operation
+    await ContentModel.create({
+      link,
+      title,
+      type,
+      //@ts-ignore
+      userId: req.userId,
+      tags: []
+    });
+
+    res.status(200).json({ message: "Content created successfully" });
+    return;
+
+  } catch (error) {
+    // ✅ Catch block to prevent double-response
+    console.error("Error in /api/v1/content:", error);
+    if (!res.headersSent) {
+      res.status(500).json({ message: "Internal server error" });
+      return;
+    }
+    // If headers already sent, don't try to send another response
+  }
+});
 
 
-app.get("/api/v1/content", async (req, res) => {
+
+app.get("/api/v1/content",userMiddleware, async (req, res) => {
      // @ts-ignore
      let userId= req.userId;
-     await ContentModel.find({
+     let content=await ContentModel.find({
           userId: userId
-     })
+     }).populate("userId","username")
      res.json({
-          message:"content fetched"
+          content
      })
 })
 
@@ -174,6 +210,4 @@ app.get("/api/v1/brain/:shareLink", async (req, res) => {
 })
 
 
-app.listen(PORT, () => {
-  console.log(`Backend running at http://localhost:${PORT}`);
-});
+app.listen(3000)
